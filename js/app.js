@@ -8,6 +8,12 @@ const AUTH_HEADERS = {
 
 const INTERES_ANUAL_FIJO = 25.0; 
 
+const formatter = new Intl.NumberFormat('es-AR', {
+  style: 'currency',
+  currency: 'ARS',
+  minimumFractionDigits: 2,
+});
+
 const formPrestamo = document.getElementById('form-prestamo'); 
 const formTitulo = document.getElementById('form-titulo');
 const btnGuardar = document.getElementById('btn-guardar');
@@ -38,7 +44,7 @@ async function cargarClientes() {
         if (!respuesta.ok) throw new Error('Error al cargar clientes');
         
         const clientes = await respuesta.json();
-        listaClientes.innerHTML = '';
+        listaClientes.innerHTML = ''; 
 
         clientes.forEach(cliente => {
             const li = document.createElement('li');
@@ -52,27 +58,43 @@ async function cargarClientes() {
 
             if (cliente.prestamos && cliente.prestamos.length > 0) {
                 const primerPrestamo = cliente.prestamos[0]; 
+
+                const monto = primerPrestamo.monto;
+                const cuotas = primerPrestamo.plazoMeses;
+                const interes = INTERES_ANUAL_FIJO; 
+
+                let totalADevolver = monto;
+                let pagoMensualCalc = monto / cuotas;
+
+                if (monto > 0 && cuotas > 0 && interes >= 0) {
+                    const interesTotal = monto * (interes / 100);
+                    totalADevolver = monto + interesTotal;
+                    pagoMensualCalc = totalADevolver / cuotas;
+                }
                 
-                infoHtml += `<br><small>Préstamo: $${primerPrestamo.monto} en ${primerPrestamo.plazoMeses} cuotas</small>`;
+                infoHtml += `
+                    <br><small>
+                        Total a Devolver: <strong>${formatter.format(totalADevolver)}</strong> 
+                        (${cuotas} cuotas de <strong>${formatter.format(pagoMensualCalc)}</strong>)
+                    </small>
+                `;
             }
             
             info.innerHTML = infoHtml;
             
             const botones = document.createElement('div');
             botones.className = 'cliente-botones';
-            
             const btnEditar = document.createElement('button');
             btnEditar.className = 'btn-editar';
             btnEditar.textContent = 'Editar';
             btnEditar.dataset.id = cliente.id; 
-            
             const btnEliminar = document.createElement('button');
             btnEliminar.className = 'btn-eliminar';
             btnEliminar.textContent = 'Eliminar';
             btnEliminar.dataset.id = cliente.id;
-            
             botones.appendChild(btnEditar);
             botones.appendChild(btnEliminar);
+            
             li.appendChild(info);
             li.appendChild(botones);
             listaClientes.appendChild(li);
@@ -189,15 +211,16 @@ listaClientes.addEventListener('click', async (e) => {
 function calcularPrestamo() {
     const monto = parseFloat(selectMonto.value);
     const cuotas = parseInt(selectCuotas.value);
-    const interes = INTERES_ANUAL_FIJO; 
+    const interes = INTERES_ANUAL_FIJO;
 
     if (monto > 0 && cuotas > 0) {
         const interesTotal = monto * (interes / 100);
         const totalADevolver = monto + interesTotal;
         const pagoMensualCalc = totalADevolver / cuotas;
 
-        totalDevolver.textContent = `$${totalADevolver.toFixed(2)}`;
-        pagoMensual.textContent = `$${pagoMensualCalc.toFixed(2)}`;
+        totalDevolver.textContent = formatter.format(totalADevolver);
+        pagoMensual.textContent = formatter.format(pagoMensualCalc);
+        
         calculoDisplay.classList.remove('hidden');
     } else {
         calculoDisplay.classList.add('hidden');

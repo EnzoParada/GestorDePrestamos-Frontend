@@ -75,7 +75,7 @@ ul {
 }
 
 li {
-    background: #fff;
+    background: var(--color-blanco);
     border: 1px solid #ddd;
     padding: 15px;
     margin-bottom: 10px;
@@ -83,10 +83,21 @@ li {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    line-height: 1.5;
 }
 
 .cliente-info {
     font-size: 1.1em;
+    line-height: 1.4;
+}
+
+.cliente-info small {
+    color: var(--color-gris);
+    font-size: 0.9em
+}
+
+.cliente-info strong {
+    color: var(--color-texto-principal);
 }
 
 .cliente-botones button {
